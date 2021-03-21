@@ -19,8 +19,9 @@ public class PanelManager : MonoBehaviour
   }
 
   void Update() {
+    var payGap = float.IsNaN(manager.payGap) ? 0 : manager.payGap;
     cash.text = cashMessage.Replace("{cash}", manager.cash.ToString("0"));
-    gap.text = gapMessage.Replace("{gap}", manager.payGap.ToString("0"));
+    gap.text = gapMessage.Replace("{gap}", payGap.ToString("0"));
     gain.text = gainMessage.Replace("{gain}", manager.revenue.ToString("0"));
   }
 }
