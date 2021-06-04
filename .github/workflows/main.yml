@@ -1,0 +1,96 @@
+name: Build and publish 😎
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  buildAndTestForSomePlatforms:
+    name: Build for ${{ matrix.targetPlatform }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        executableName:
+          - Pay Us All
+        unityVersion:
+          - 2020.3.11f1
+        targetPlatform:
+          # - StandaloneOSX # Build a macOS standalone (Intel 64-bit).
+          # - StandaloneWindows64 # Build a Windows 64-bit standalone.
+          # - StandaloneLinux64 # Build a Linux 64-bit standalone.
+          # - iOS # Build an iOS player.
+          # - Android # Build an Android player.
+          - WebGL # WebGL.
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          lfs: true
+      - name: Normalise repo name 🧶
+        id: repositoryName
+        uses: mad9000/actions-find-and-replace-string@2
+        with:
+          source: ${{ github.repository }}
+          find: '/'
+          replace: '-'
+      - name: Cache 🧵
+        uses: actions/cache@v2
+        with:
+          path: Library
+          key: Library-${{ matrix.targetPlatform }}
+          restore-keys: |
+            Library-
+      - name: Test 💥
+        uses: game-ci/unity-test-runner@v2
+        id: testRunner
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          unityVersion: ${{ matrix.unityVersion }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload test results 🪄
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: Test results (all modes)
+          path: ${{ steps.testRunner.outputs.artifactsPath }}
+      - name: Build 🧱
+        uses: game-ci/unity-builder@v2
+        id: builder
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          unityVersion: ${{ matrix.unityVersion }}
+          targetPlatform: ${{ matrix.targetPlatform }}
+      - name: Zip Build 🗜️
+        if: ${{ github.ref == 'refs/heads/main' && matrix.targetPlatform != 'WebGL' }}
+        run: |
+          sudo zip -r "build/${{ matrix.executableName }}.zip" build/${{ matrix.targetPlatform }}
+          sudo rm -rf build/${{ matrix.targetPlatform }}
+          sudo mkdir build/${{ matrix.targetPlatform }}
+          sudo mv "build/${{ matrix.executableName }}.zip" build/${{ matrix.targetPlatform }}
+      - name: Clean build (WebGL) 🧹
+        if: ${{ github.ref == 'refs/heads/main' && matrix.targetPlatform == 'WebGL' }}
+        run: |
+          sudo cp -r build/${{ matrix.targetPlatform }}/${{ matrix.targetPlatform }} build
+          sudo rm -rf build/${{ matrix.targetPlatform }}/${{ matrix.targetPlatform }}
+      - name: Copy portfolio files 🗃️
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: sudo cp -r portfolio build
+      - name: Upload artifacts 🪄
+        uses: jakejarvis/s3-sync-action@master
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          args: --acl public-read
+        env:
+          AWS_S3_BUCKET: noxdew-games
+          AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_ACCESS_KEY }}
+          AWS_S3_ENDPOINT: https://ams3.digitaloceanspaces.com
+          SOURCE_DIR: build
+          DEST_DIR: demos/${{ steps.repositoryName.outputs.value }}/${{ steps.builder.outputs.buildVersion }}
