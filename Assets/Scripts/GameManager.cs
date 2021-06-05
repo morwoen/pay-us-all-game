@@ -83,7 +83,7 @@ public class GameManager : MonoBehaviour
     using (UnityWebRequest webRequest = UnityWebRequest.Get("https://randomuser.me/api/")) {
       yield return webRequest.SendWebRequest();
 
-      if (!webRequest.isNetworkError) {
+      if (webRequest.result == UnityWebRequest.Result.ConnectionError) {
         var res = JsonUtility.FromJson<PersonResponse>(webRequest.downloadHandler.text);
         var person = res.results[0];
 

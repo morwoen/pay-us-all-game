@@ -53,7 +53,7 @@ public class EmployeeScript : MonoBehaviour
     using (UnityWebRequest webRequest = UnityWebRequestTexture.GetTexture(url)) {
       yield return webRequest.SendWebRequest();
 
-      if (!webRequest.isNetworkError) {
+      if (webRequest.result == UnityWebRequest.Result.ConnectionError) {
         var texture = ((DownloadHandlerTexture)webRequest.downloadHandler).texture;
         avatar.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0, 0));
       }
