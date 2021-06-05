@@ -70,9 +70,5 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
-# Scene protection
-/[Aa]ssets/[Ss]cenes/*
-!/[Aa]ssets/[Ss]cenes/*Scene*
-
 # test output
 artifacts/
