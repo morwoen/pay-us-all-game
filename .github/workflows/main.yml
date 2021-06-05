@@ -88,11 +88,23 @@ jobs:
       - name: Copy portfolio files 🗃️
         if: ${{ github.ref == 'refs/heads/main' }}
         run: sudo cp -r portfolio build
-      - name: Upload artifacts 🪄
+      - name: Upload artifacts (not gzip) 🪄
         uses: jakejarvis/s3-sync-action@master
         if: ${{ github.ref == 'refs/heads/main' }}
         with:
-          args: --acl public-read
+          args: --acl public-read --exclude "*.gz"
+        env:
+          AWS_S3_BUCKET: noxdew-games
+          AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_ACCESS_KEY }}
+          AWS_S3_ENDPOINT: https://ams3.digitaloceanspaces.com
+          SOURCE_DIR: build
+          DEST_DIR: demos/${{ steps.repositoryName.outputs.value }}/${{ steps.builder.outputs.buildVersion }}
+      - name: Upload artifacts (gzip) 🪄
+        uses: jakejarvis/s3-sync-action@master
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          args: --acl public-read --exclude "*" --include "*.gz" --content-encoding gzip
         env:
           AWS_S3_BUCKET: noxdew-games
           AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY_ID }}
