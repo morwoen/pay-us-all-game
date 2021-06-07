@@ -18,6 +18,8 @@ public class EmployeeScript : MonoBehaviour
   public float happiness;
   public float happinessRate;
   public float happinessRateChange = 0.001f;
+  public Sprite manFace;
+  public Sprite womanFace;
 
   public Text employeeName;
   public Image avatar;
@@ -47,18 +49,14 @@ public class EmployeeScript : MonoBehaviour
     }
   }
 
-  public IEnumerator SetImage(string url) {
-    if (url == null) yield break;
-
-    using (UnityWebRequest webRequest = UnityWebRequestTexture.GetTexture(url)) {
-      yield return webRequest.SendWebRequest();
-
-      if (webRequest.result == UnityWebRequest.Result.ConnectionError) {
-        var texture = ((DownloadHandlerTexture)webRequest.downloadHandler).texture;
-        avatar.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0, 0));
-      }
+  public void SetImage() {
+    if (gender == Gender.Female) {
+      avatar.sprite = womanFace;
+    } else {
+      avatar.sprite = manFace;
     }
   }
+
   public void IncreaseSalary() {
     salary += 1000;
     happiness = Mathf.Clamp(happiness + 5, 0, 100);

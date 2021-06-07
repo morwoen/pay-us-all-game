@@ -83,7 +83,7 @@ public class GameManager : MonoBehaviour
     using (UnityWebRequest webRequest = UnityWebRequest.Get("https://randomuser.me/api/")) {
       yield return webRequest.SendWebRequest();
 
-      if (webRequest.result == UnityWebRequest.Result.ConnectionError) {
+      if (webRequest.result != UnityWebRequest.Result.ConnectionError) {
         var res = JsonUtility.FromJson<PersonResponse>(webRequest.downloadHandler.text);
         var person = res.results[0];
 
@@ -105,7 +105,7 @@ public class GameManager : MonoBehaviour
     employee.productivityRate = Random.Range(0.01f, 0.05f);
 
     scrollRect.normalizedPosition = Vector2.zero;
-    StartCoroutine(employee.SetImage(person?.picture?.large));
+    employee.SetImage();
   }
   
   public void Resign(EmployeeScript employee) {
@@ -137,8 +137,6 @@ public class GameManager : MonoBehaviour
     female.name = new PersonName();
     female.name.first = "Christa";
     female.name.last = "Blanchard";
-    female.picture = new PersonPicture();
-    female.picture.large = "https://randomuser.me/api/portraits/women/2.jpg";
     AddEmployee(female);
 
     yield return new WaitForSeconds(1.5f);
@@ -148,8 +146,6 @@ public class GameManager : MonoBehaviour
     male.name = new PersonName();
     male.name.first = "Arnaud";
     male.name.last = "Lam";
-    male.picture = new PersonPicture();
-    male.picture.large = "https://randomuser.me/api/portraits/men/1.jpg";
     AddEmployee(male);
 
     yield return new WaitForSeconds(1.5f);
@@ -230,7 +226,6 @@ public class GameManager : MonoBehaviour
   {
     public string gender;
     public PersonName name;
-    public PersonPicture picture;
   }
 
   [System.Serializable]
@@ -244,11 +239,5 @@ public class GameManager : MonoBehaviour
   {
     public string first;
     public string last;
-  }
-
-  [System.Serializable]
-  private class PersonPicture
-  {
-    public string large;
   }
 }
